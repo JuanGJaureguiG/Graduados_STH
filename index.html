@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graduados · UNIMINUTO Sede Tolima-Huila</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="tag">UNIMINUTO · Sede Tolima-Huila</div>
+      <h1>Graduados</h1>
+      <div class="sub" id="brand-sub">Histórico de grados por periodo</div>
+    </div>
+    <!-- los grupos de filtros se generan desde app.js -->
+    <button class="clear-all" id="clear-all">Limpiar todos los filtros</button>
+    <div class="side-note" id="side-note"></div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <h2>Tablero de Graduados</h2>
+        <div class="desc">Graduados de la Sede Tolima-Huila por año y periodo de grado, Centro Universitario, programa, nivel de formación y perfil sociodemográfico.</div>
+      </div>
+      <div class="as-of" id="as-of"></div>
+    </div>
+
+    <nav class="tabs" id="tabs"></nav>
+    <div class="filter-summary" id="filter-summary"></div>
+    <div class="empty-state" id="empty-state" style="display:none">Ningún graduado cumple la combinación de filtros actual. Quita algún filtro o usa «Limpiar todos los filtros».</div>
+
+    <!-- ============ PANORAMA ============ -->
+    <section class="view" id="view-resumen">
+      <div class="kpi-row" id="kpi-res"></div>
+      <div class="grid">
+        <div class="panel full">
+          <h3>Graduados por año</h3>
+          <div class="panel-sub">Barras apiladas por semestre de grado · total sobre cada barra · la etiqueta inferior muestra la variación frente al año anterior</div>
+          <div class="chart-wrap tall"><canvas id="c-res-anio"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Graduados por periodo</h3>
+          <div class="panel-sub">Serie semestral de grados</div>
+          <div class="chart-wrap"><canvas id="c-res-per"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Nivel de formación por año</h3>
+          <div class="panel-sub">Pregrado, especialización y técnico profesional</div>
+          <div class="chart-wrap"><canvas id="c-res-niv"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Lectura rápida</h3>
+          <div class="panel-sub">Generada automáticamente con los filtros aplicados</div>
+          <ul class="insights" id="ins-res"></ul>
+        </div>
+        <div class="panel full">
+          <h3>Detalle anual</h3>
+          <div class="panel-sub">Graduados por año y semestre con los filtros aplicados</div>
+          <div class="table-wrap"><table id="t-res"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CENTROS ============ -->
+    <section class="view" id="view-centros">
+      <div class="kpi-row" id="kpi-cu"></div>
+      <div class="grid">
+        <div class="panel full">
+          <h3>Graduados por Centro Universitario y año</h3>
+          <div class="panel-sub">Barras apiladas · el total del año aparece sobre cada barra</div>
+          <div class="chart-wrap tall"><canvas id="c-cu-stack"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Total de graduados por centro</h3>
+          <div class="panel-sub">Suma de los años seleccionados</div>
+          <div class="chart-wrap"><canvas id="c-cu-bar"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Participación en los graduados de la sede</h3>
+          <div class="panel-sub">Porcentaje de los años seleccionados</div>
+          <div class="chart-wrap"><canvas id="c-cu-pie"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Nivel de formación por Centro Universitario</h3>
+          <div class="panel-sub">Distribución porcentual de los graduados de cada centro</div>
+          <div class="chart-wrap short"><canvas id="c-cu-niv"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Mapa de calor: graduados por centro y año</h3>
+          <div class="panel-sub">Intensidad del color proporcional al número de graduados</div>
+          <div class="table-wrap"><table id="t-cu"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROGRAMAS ============ -->
+    <section class="view" id="view-programas">
+      <div class="kpi-row" id="kpi-prog"></div>
+      <div class="grid">
+        <div class="panel">
+          <h3>Programas con más graduados</h3>
+          <div class="panel-sub" id="c-prog-top-sub">Los 15 primeros · color según nivel de formación</div>
+          <div class="chart-wrap xl"><canvas id="c-prog-top"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Área de conocimiento</h3>
+          <div class="panel-sub">Participación en los graduados seleccionados</div>
+          <div class="chart-wrap xl"><canvas id="c-prog-area"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Evolución de los cinco programas con más graduados</h3>
+          <div class="panel-sub">Graduados por año · los programas se recalculan con los filtros</div>
+          <div class="chart-wrap"><canvas id="c-prog-evo"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Lectura rápida</h3>
+          <div class="panel-sub">Generada automáticamente con los filtros aplicados</div>
+          <ul class="insights" id="ins-prog"></ul>
+        </div>
+        <div class="panel full">
+          <h3>Detalle por programa</h3>
+          <div class="panel-sub" id="t-prog-sub"></div>
+          <div class="table-wrap"><table id="t-prog"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PERFIL ============ -->
+    <section class="view" id="view-perfil">
+      <div class="kpi-row" id="kpi-per"></div>
+      <div class="grid">
+        <div class="panel">
+          <h3>Género</h3>
+          <div class="panel-sub">Distribución de los graduados seleccionados</div>
+          <div class="chart-wrap"><canvas id="c-per-gen"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Participación de mujeres por año</h3>
+          <div class="panel-sub">Porcentaje de graduadas sobre el total de cada año</div>
+          <div class="chart-wrap"><canvas id="c-per-fem"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Rango de edad por género</h3>
+          <div class="panel-sub">Número de graduados por rango de edad registrado en SAP</div>
+          <div class="chart-wrap"><canvas id="c-per-edad"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Estrato socioeconómico</h3>
+          <div class="panel-sub">Número de graduados por estrato</div>
+          <div class="chart-wrap"><canvas id="c-per-est"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Estrato socioeconómico por Centro Universitario</h3>
+          <div class="panel-sub">Distribución porcentual de los graduados de cada centro</div>
+          <div class="chart-wrap short"><canvas id="c-per-estcu"></canvas></div>
+        </div>
+        <div class="panel full">
+          <h3>Lectura rápida</h3>
+          <div class="panel-sub">Generada automáticamente con los filtros aplicados</div>
+          <ul class="insights" id="ins-per"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ METODOLOGÍA ============ -->
+    <section class="view" id="view-metodologia">
+      <div class="grid"><div class="panel full"><div class="prose" id="prose"></div></div></div>
+    </section>
+
+    <footer class="credit" id="credit"></footer>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
