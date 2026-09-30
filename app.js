@@ -9,7 +9,11 @@
 
 const COL = { ink: '#16324F', accent: '#E2962B', teal: '#2F7A6D', purple: '#8A5FBF', nat: '#8A9BAE', danger: '#C1432B', grid: '#EDEFEC', muted: '#6B7280' };
 const CU_COLORS = { 'Ibagué': '#E2962B', 'Neiva': '#2F7A6D', 'Garzón': '#C1432B', 'Pitalito': '#3E6FA8', 'Lérida': '#8A5FBF', 'La Dorada': '#D1709B' };
-const NIVEL_COLORS = { 'Pregrado': '#16324F', 'Especialización': '#E2962B', 'Técnico Profesional': '#2F7A6D', 'Sin dato': '#B8BEC6' };
+const NIVEL_COLORS = { 'Pregrado': '#16324F', 'Especialización': '#E2962B', 'Maestría': '#8A5FBF', 'Técnico Profesional': '#2F7A6D', 'Sin dato': '#B8BEC6' };
+const POSGRADO = ['Especialización', 'Maestría'];
+const posg = m => sum(POSGRADO.map(n => g(m, n)));
+const posg2 = (m, a) => sum(POSGRADO.map(n => g2(m, a, n)));
+const abrev = p => p.replace('Especialización en ', 'Esp. ').replace('Maestría en ', 'Maestría ');
 const SEM_COLORS = { 1: '#16324F', 2: '#E2962B' };
 const GEN_COLORS = { 'Femenino': '#2F7A6D', 'Masculino': '#16324F', 'Sin dato': '#B8BEC6' };
 const AREA_COLORS = ['#16324F', '#E2962B', '#2F7A6D', '#8A5FBF', '#3E6FA8', '#C1432B', '#6E8B3D', '#B8BEC6'];
@@ -55,7 +59,7 @@ const short = (s, n = 42) => s.length > n ? s.slice(0, n - 1) + '…' : s;
 const corteDate = () => { const [a, m, d] = DATA.corte.split('-').map(Number); return new Date(a, m - 1, d); };
 const fmtCorte = () => corteDate().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 const gapSpan = (v, note = '') => v == null ? '<span class="flat">—</span>' : `<span class="gap ${v >= 0 ? 'pos' : 'neg'}"${note ? ` title="${note}"` : ''}>${fmtPS(v)}</span>`;
-const pTag = y => isPartial(y) ? '<span class="ptag">solo 2026-1</span>' : '';
+const pTag = y => isPartial(y) ? `<span class="ptag">solo ${y}-1</span>` : '';
 
 /* ---------------- filtrado y agregación ---------------- */
 function pass(r, skip) {
@@ -341,7 +345,7 @@ function renderResumen(rows) {
     kpi('Graduados en la selección', fmt(tot), promComp != null ? `Promedio anual (años completos): ${fmt(promComp)}` : 'Solo año en curso'),
     kpi('Último periodo de grado', lastVal, lastTxt),
     kpi('Mujeres graduadas', fmtP(g(gen, 'Femenino') / tot), `${fmt(g(gen, 'Femenino'))} mujeres · ${fmt(g(gen, 'Masculino'))} hombres`),
-    kpi('Año con más graduados', best ? String(best) : '—', best ? `${fmt(g(byY, best))} graduados · posgrado: ${fmtP(g(niv, 'Especialización') / tot)} de la selección` : 'Sin años completos seleccionados'),
+    kpi('Año con más graduados', best ? String(best) : '—', best ? `${fmt(g(byY, best))} graduados · posgrado: ${fmtP(posg(niv) / tot)} de la selección` : 'Sin años completos seleccionados'),
   ].join('');
 
   // Anual apilado por semestre
@@ -388,7 +392,7 @@ function renderResumen(rows) {
   // Lectura rápida
   const ins = [];
   const cuR = ranked(by(rows, 'cu')), prR = ranked(by(rows, 'programa'));
-  ins.push(`En ${rangeText(Y)} se registran <b>${fmt(tot)}</b> graduados con los filtros aplicados; <b>${fmtP(g(niv, 'Pregrado') / tot)}</b> son de pregrado y <b>${fmtP(g(niv, 'Especialización') / tot)}</b> de especialización.`);
+  ins.push(`En ${rangeText(Y)} se registran <b>${fmt(tot)}</b> graduados con los filtros aplicados; <b>${fmtP(g(niv, 'Pregrado') / tot)}</b> son de pregrado y <b>${fmtP(posg(niv) / tot)}</b> de posgrado (especialización y maestría).`);
   if (cuR.length > 1) ins.push(`<b>${esc(cuR[0][0])}</b> aporta el ${fmtP(cuR[0][1] / tot)} de los graduados y <b>${esc(cuR[1][0])}</b> el ${fmtP(cuR[1][1] / tot)}; entre los dos concentran el <b>${fmtP((cuR[0][1] + cuR[1][1]) / tot)}</b>.`);
   if (prR.length > 1) ins.push(`El programa con más graduados es <b>${esc(prR[0][0])}</b> (${fmt(prR[0][1])}), seguido de ${esc(prR[1][0])} (${fmt(prR[1][1])}).`);
   if (comp.length >= 3) {
@@ -408,12 +412,12 @@ function renderResumen(rows) {
 
   // Tabla anual
   const yg = cross(rows, 'anio', 'genero');
-  let h = `<thead><tr><th>Año</th><th class="r">Semestre 1</th><th class="r">Semestre 2</th><th class="r">Total</th><th class="r">Var. anual</th><th class="r">% mujeres</th><th class="r">% especialización</th><th class="r">Participación</th></tr></thead><tbody>`;
+  let h = `<thead><tr><th>Año</th><th class="r">Semestre 1</th><th class="r">Semestre 2</th><th class="r">Total</th><th class="r">Var. anual</th><th class="r">% mujeres</th><th class="r">% posgrado</th><th class="r">Participación</th></tr></thead><tbody>`;
   [...Y].reverse().forEach(y => {
     const t = g(byY, y); const d = yoy(y);
-    h += `<tr><td class="name">${ylab(y)}${pTag(y)}</td><td class="r cell-sc">${fmt(g2(ys, y, 1))}</td><td class="r cell-sc">${isPartial(y) ? '<span class="pending">pendiente</span>' : fmt(g2(ys, y, 2))}</td><td class="r cell-sc">${fmt(t)}</td><td class="r">${d ? gapSpan(d.v, d.note) : '<span class="flat">—</span>'}</td><td class="r">${t ? fmtP(g2(yg, y, 'Femenino') / t) : '—'}</td><td class="r">${t ? fmtP(g2(yn, y, 'Especialización') / t) : '—'}</td><td class="r"><div class="barcell"><span>${fmtP(t / tot)}</span><span class="bt"><span class="bf" style="width:${(t / Math.max(...Y.map(z => g(byY, z))) * 100).toFixed(1)}%;display:block"></span></span></div></td></tr>`;
+    h += `<tr><td class="name">${ylab(y)}${pTag(y)}</td><td class="r cell-sc">${fmt(g2(ys, y, 1))}</td><td class="r cell-sc">${isPartial(y) ? '<span class="pending">pendiente</span>' : fmt(g2(ys, y, 2))}</td><td class="r cell-sc">${fmt(t)}</td><td class="r">${d ? gapSpan(d.v, d.note) : '<span class="flat">—</span>'}</td><td class="r">${t ? fmtP(g2(yg, y, 'Femenino') / t) : '—'}</td><td class="r">${t ? fmtP(posg2(yn, y) / t) : '—'}</td><td class="r"><div class="barcell"><span>${fmtP(t / tot)}</span><span class="bt"><span class="bf" style="width:${(t / Math.max(...Y.map(z => g(byY, z))) * 100).toFixed(1)}%;display:block"></span></span></div></td></tr>`;
   });
-  h += `<tr class="total"><td>Total selección</td><td class="r">${fmt(s1)}</td><td class="r">${fmt(s2)}</td><td class="r">${fmt(tot)}</td><td></td><td class="r">${fmtP(g(gen, 'Femenino') / tot)}</td><td class="r">${fmtP(g(niv, 'Especialización') / tot)}</td><td class="r">100%</td></tr>`;
+  h += `<tr class="total"><td>Total selección</td><td class="r">${fmt(s1)}</td><td class="r">${fmt(s2)}</td><td class="r">${fmt(tot)}</td><td></td><td class="r">${fmtP(g(gen, 'Femenino') / tot)}</td><td class="r">${fmtP(posg(niv) / tot)}</td><td class="r">100%</td></tr>`;
   el('t-res').innerHTML = h + '</tbody>';
 }
 
@@ -499,20 +503,20 @@ function renderProgramas(rows) {
   const meta = p => DATA.prog_meta[p] || { nivel: 'Sin dato', area: 'Sin dato' };
   const top5 = sum(R.slice(0, 5).map(r => r[1]));
   const niv = by(rows, 'nivel');
-  const posg = R.filter(([p]) => meta(p).nivel === 'Especialización');
+  const posgR = R.filter(([p]) => POSGRADO.includes(meta(p).nivel));
 
   el('kpi-prog').innerHTML = [
-    kpi('Programas con graduados', fmt(R.length), `${fmt(R.filter(([p]) => meta(p).nivel !== 'Especialización').length)} de pregrado y técnicos · ${fmt(posg.length)} especializaciones`),
-    kpi('Programa con más graduados', R.length ? `<span style="font-size:18px">${esc(short(R[0][0].replace('Especialización en ', 'Esp. '), 34))}</span>` : '—', R.length ? `${fmt(R[0][1])} graduados · ${fmtP(R[0][1] / tot)} de la selección` : ''),
+    kpi('Programas con graduados', fmt(R.length), `${fmt(R.length - posgR.length)} de pregrado y técnicos · ${fmt(posgR.length)} de posgrado`),
+    kpi('Programa con más graduados', R.length ? `<span style="font-size:18px">${esc(short(abrev(R[0][0]), 34))}</span>` : '—', R.length ? `${fmt(R[0][1])} graduados · ${fmtP(R[0][1] / tot)} de la selección` : ''),
     kpi('Concentración en los 5 primeros', fmtP(top5 / tot), `${fmt(top5)} de ${fmt(tot)} graduados`),
-    kpi('Especialización con más graduados', posg.length ? `<span style="font-size:18px">${esc(short(posg[0][0].replace('Especialización en ', 'Esp. '), 34))}</span>` : '—', posg.length ? `${fmt(posg[0][1])} graduados · posgrado total: ${fmtP(g(niv, 'Especialización') / tot)}` : 'Sin especializaciones en la selección'),
+    kpi('Posgrado con más graduados', posgR.length ? `<span style="font-size:18px">${esc(short(abrev(posgR[0][0]), 34))}</span>` : '—', posgR.length ? `${fmt(posgR[0][1])} graduados · posgrado total: ${fmtP(posg(niv) / tot)}` : 'Sin posgrados en la selección'),
   ].join('');
 
   const T = R.slice(0, 15);
-  el('c-prog-top-sub').textContent = `${T.length < R.length ? `Los ${T.length} primeros de ${R.length}` : `${R.length} programas`} · color según nivel de formación`;
+  el('c-prog-top-sub').textContent = `${T.length < R.length ? `Los ${T.length} primeros de ${R.length}` : `${R.length} ${R.length === 1 ? 'programa' : 'programas'}`} · color según nivel de formación`;
   ensureChart('c-prog-top', {
     type: 'bar',
-    data: { labels: T.map(r => short(r[0].replace('Especialización en ', 'Esp. '), 34)), datasets: [{ label: 'Graduados', data: T.map(r => r[1]), backgroundColor: T.map(r => NIVEL_COLORS[meta(r[0]).nivel] || COL.nat), borderRadius: 2 }] },
+    data: { labels: T.map(r => short(abrev(r[0]), 34)), datasets: [{ label: 'Graduados', data: T.map(r => r[1]), backgroundColor: T.map(r => NIVEL_COLORS[meta(r[0]).nivel] || COL.nat), borderRadius: 2 }] },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 44 } },
       plugins: { legend: { display: false }, inlineLabels: { enabled: true, size: 10.5 }, tooltip: { callbacks: { title: c => T[c[0].dataIndex][0], label: c => ` ${fmt(c.parsed.x)} graduados (${fmtP(c.parsed.x / tot)})`, afterLabel: c => ` ${meta(T[c.dataIndex][0]).nivel}` } } },
@@ -546,7 +550,7 @@ function renderProgramas(rows) {
   const comp = Y.filter(y => !isPartial(y));
   const lastC = comp[comp.length - 1], prevC = comp[comp.length - 2];
   const ins = [];
-  ins.push(`<b>${fmt(R.length)}</b> programas registran graduados en la selección; los cinco primeros concentran el <b>${fmtP(top5 / tot)}</b> del total.`);
+  ins.push(R.length === 1 ? `Un solo programa registra graduados en la selección.` : `<b>${fmt(R.length)}</b> programas registran graduados en la selección; los cinco primeros concentran el <b>${fmtP(top5 / tot)}</b> del total.`);
   if (ar.length) ins.push(`El área de <b>${esc(ar[0][0])}</b> reúne el ${fmtP(ar[0][1] / tot)} de los graduados${ar[1] ? `, seguida de ${esc(ar[1][0])} (${fmtP(ar[1][1] / tot)})` : ''}.`);
   if (lastC && prevC) {
     const ch = R.map(([p]) => ({ p, a: g2(py, p, prevC), b: g2(py, p, lastC) })).filter(x => x.a >= 20);
@@ -684,7 +688,7 @@ function renderMetodologia() {
     <ul>
       <li>Registros en el archivo: <b>${fmt(q.registros_archivo)}</b>. Registros incluidos en el tablero: <b>${fmt(q.registros_tablero)}</b>.</li>
       <li>Se excluyen los centros que no hacen parte del alcance de la Sede Tolima-Huila: ${excl}.</li>
-      <li>Se descartan ${fmt(q.registros_vacios)} filas vacías del final del archivo.</li>
+      ${q.registros_vacios ? `<li>Se descartan ${fmt(q.registros_vacios)} filas vacías del final del archivo.</li>` : ''}
       <li>Se unifican denominaciones de programa que SAP registra con distinta escritura (por ejemplo «Trabajo social» y «Trabajo Social», o «Especialización En Gerencia De Proyectos» y «Especialización en Gerencia de Proyectos»). También se normalizan tildes en niveles y modalidades.</li>
     </ul>
     <h4>Cómo leer los filtros</h4>

@@ -33,12 +33,15 @@ PROG_FIX = {
     "Licenciatura En Educación Básica Con Énfasis En Ciencias Naturales Y Educación Ambiental":
         "Licenciatura en Educación Básica con Énfasis en Ciencias Naturales y Educación Ambiental",
 }
-NIVEL_FIX = {"Especializacion": "Especialización", "Tecnico Profesional": "Técnico Profesional"}
+NIVEL_FIX = {"Especializacion": "Especialización", "Tecnico Profesional": "Técnico Profesional",
+             "Maestria": "Maestría"}
 MOD_FIX = {"Hibrida": "Híbrida"}
 
 df = pd.read_excel(SRC, sheet_name=SHEET)
 df.columns = ["genero", "edad", "estrato", "cu", "modalidad", "programa", "area", "nivel", "semestre", "anio"]
 n_total = len(df)
+for c in ["genero", "edad", "cu", "modalidad", "programa", "area", "nivel", "semestre"]:
+    df[c] = df[c].str.strip()
 
 df = df.dropna(subset=["cu", "anio", "semestre"])
 n_vacios = n_total - len(df)
@@ -61,7 +64,7 @@ DIMS = ["cu", "modalidad", "programa", "area", "nivel", "genero", "edad", "estra
 ORDEN = {
     "edad": ["18 a 30", "31 a 35", "36 a 40", "41 a 45", "Más de 45", "Sin dato"],
     "estrato": [f"Estrato {i}" for i in range(1, 7)] + ["Sin dato"],
-    "nivel": ["Pregrado", "Especialización", "Técnico Profesional", "Sin dato"],
+    "nivel": ["Pregrado", "Técnico Profesional", "Especialización", "Maestría", "Sin dato"],
 }
 dims = {}
 for d in DIMS:
