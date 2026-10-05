@@ -18,20 +18,24 @@ EXCLUIDOS = {"Cu Fresno", "Ct Puerto Boyacá", "Cu Líbano", "Cu Cajamarca", "Cu
 CU_NOMBRE = {"Cu Ibagué": "Ibagué", "Cu Neiva": "Neiva", "Cu Pitalito": "Pitalito",
              "Cu Garzón": "Garzón", "Cu Lérida": "Lérida", "Cu La Dorada": "La Dorada"}
 
-# Unificación de denominaciones de programa (mayúsculas / tildes / variantes de SAP)
+# Denominaciones de programa: SAP cambia mayúsculas, tildes y espacios entre cortes.
+# 1) se normaliza el estilo (conectores en minúscula), 2) se unifican variantes reales.
+CONECTORES = {"de", "del", "en", "y", "la", "las", "el", "los", "para", "con", "a"}
+SIGLAS = {"bpo": "BPO"}
+def estilo_programa(s):
+    palabras = " ".join(str(s).split()).split(" ")
+    out = []
+    for i, w in enumerate(palabras):
+        lw = w.lower()
+        if lw in SIGLAS: out.append(SIGLAS[lw])
+        elif i > 0 and lw in CONECTORES: out.append(lw)
+        else: out.append(lw[:1].upper() + lw[1:])
+    return " ".join(out)
 PROG_FIX = {
-    "Trabajo social": "Trabajo Social",
-    "Especialización En Gerencia De Proyectos": "Especialización en Gerencia de Proyectos",
-    "ESPECIALIZACIÓN EN GERENCIA EDUCATIVA": "Especialización en Gerencia Educativa",
-    "Especialización en gerencia de riesgos laborales seguridad y salud en el trabajo":
+    "Especialización en Gerencia de Riesgos Laborales Seguridad y Salud en el Trabajo":
         "Especialización en Gerencia en Riesgos Laborales, Seguridad y Salud en el Trabajo",
-    "Especialización en Auditoría Integral y Revisoría  Fiscal":
-        "Especialización en Auditoría Integral y Revisoría Fiscal",
-    "Especialización Psicología Organizacional": "Especialización en Psicología Organizacional",
     "Especialización en Auditoria Forense": "Especialización en Auditoría Forense",
-    "Licenciatura En Educación Artística": "Licenciatura en Educación Artística",
-    "Licenciatura En Educación Básica Con Énfasis En Ciencias Naturales Y Educación Ambiental":
-        "Licenciatura en Educación Básica con Énfasis en Ciencias Naturales y Educación Ambiental",
+    "Especialización Psicología Organizacional": "Especialización en Psicología Organizacional",
 }
 NIVEL_FIX = {"Especializacion": "Especialización", "Tecnico Profesional": "Técnico Profesional",
              "Maestria": "Maestría"}
@@ -45,12 +49,17 @@ for c in ["genero", "edad", "cu", "modalidad", "programa", "area", "nivel", "sem
 
 df = df.dropna(subset=["cu", "anio", "semestre"])
 n_vacios = n_total - len(df)
+# SAP no siempre escribe las tildes igual ("Cu Lerida" / "Cu Lérida"): se compara sin tildes
+import unicodedata
+sin_tilde = lambda s: unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
+CU_CANON = {sin_tilde(k): k for k in CU_NOMBRE}
+df["cu"] = df["cu"].map(lambda v: CU_CANON.get(sin_tilde(v), v))
 excl = df[~df["cu"].isin(CU_NOMBRE)]
 excl_detalle = excl["cu"].value_counts().to_dict()
 df = df[df["cu"].isin(CU_NOMBRE)].copy()
 
 df["cu"] = df["cu"].map(CU_NOMBRE)
-df["programa"] = df["programa"].fillna("Sin programa registrado").str.strip().replace(PROG_FIX)
+df["programa"] = df["programa"].fillna("Sin programa registrado").map(estilo_programa).replace(PROG_FIX)
 df["nivel"] = df["nivel"].replace(NIVEL_FIX).fillna("Sin dato")
 df["modalidad"] = df["modalidad"].replace(MOD_FIX).fillna("Sin dato")
 df["area"] = df["area"].fillna("Sin dato")

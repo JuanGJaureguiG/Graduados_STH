@@ -689,7 +689,7 @@ function renderMetodologia() {
       <li>Registros en el archivo: <b>${fmt(q.registros_archivo)}</b>. Registros incluidos en el tablero: <b>${fmt(q.registros_tablero)}</b>.</li>
       <li>Se excluyen los centros que no hacen parte del alcance de la Sede Tolima-Huila: ${excl}.</li>
       ${q.registros_vacios ? `<li>Se descartan ${fmt(q.registros_vacios)} filas vacías del final del archivo.</li>` : ''}
-      <li>Se unifican denominaciones de programa que SAP registra con distinta escritura (por ejemplo «Trabajo social» y «Trabajo Social», o «Especialización En Gerencia De Proyectos» y «Especialización en Gerencia de Proyectos»). También se normalizan tildes en niveles y modalidades.</li>
+      <li>Se unifican las denominaciones que SAP escribe de distinta forma entre cortes (mayúsculas, tildes, espacios dobles): por ejemplo «Administración De Empresas» y «Administración de Empresas», o «Cu Lerida» y «Cu Lérida». También se normalizan tildes en niveles y modalidades.</li>
     </ul>
     <h4>Cómo leer los filtros</h4>
     <ul>
